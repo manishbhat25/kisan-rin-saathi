@@ -2,5 +2,5 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
   "buildCommand": "node scripts/make-pg-schema.mjs && prisma generate --schema prisma/postgres/schema.prisma && next build",
-  "regions": ["bom1"]
+  "regions": ["syd1"]
 }

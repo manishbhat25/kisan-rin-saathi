@@ -36,7 +36,9 @@ export async function registerFarmer(input: unknown, ip: string) {
 export async function verifyLogin(input: unknown, ip: string) {
   const data = loginSchema.parse(input);
   const key = `login:${data.email}:${ip}`;
+  const accountKey = `login-account:${data.email}`;
   await rateLimit(key, 8, 15 * 60 * 1000);
+  await rateLimit(accountKey, 20, 15 * 60 * 1000);
   const user = await prisma.user.findUnique({ where: { email: data.email } });
   const ok = await bcrypt.compare(data.password, user?.passwordHash ?? DUMMY_HASH);
   if (!user || !ok || !user.isActive) {
@@ -44,6 +46,7 @@ export async function verifyLogin(input: unknown, ip: string) {
     throw new ApiError(401, "INVALID_CREDENTIALS", "Email or password is incorrect.");
   }
   await clearRateLimit(key);
+  await clearRateLimit(accountKey);
   await audit(prisma, { id: user.id, role: user.role as Role }, "LOGIN", { type: "User", id: user.id });
   return user;
 }

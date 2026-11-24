@@ -3,6 +3,25 @@ import { STATUSES } from "@/lib/domain/constants";
 import { bankSubmitSchema, governmentDraftSchema } from "@/lib/domain/schemas";
 import { TRANSITIONS, availableActions, canPerform } from "@/lib/domain/stateMachine";
 import { normalizeState } from "@/lib/domain/states";
+import { ASSESSMENT_FIELDS } from "@/lib/domain/fields";
+import { safeNextPath } from "@/lib/domain/redirect";
+
+describe("safeNextPath", () => {
+  it.each(["/farmer", "/farmer/applications?x=1"])("allows same-site path %s", (path) => {
+    expect(safeNextPath(path)).toBe(path);
+  });
+  it.each(["//evil.com", "/\\evil.com", "https://evil.com", "/\tx", "", undefined])("rejects %s", (path) => {
+    expect(safeNextPath(path)).toBeNull();
+  });
+});
+
+describe("ASSESSMENT_FIELDS", () => {
+  it("includes every model input, including support purpose", () => {
+    expect(ASSESSMENT_FIELDS.GOVERNMENT).toContain("supportPurpose");
+    expect(ASSESSMENT_FIELDS.BANK).toContain("collateralValue");
+    expect(ASSESSMENT_FIELDS.GOVERNMENT).not.toContain("fullName");
+  });
+});
 
 describe("normalizeState", () => {
   it.each([

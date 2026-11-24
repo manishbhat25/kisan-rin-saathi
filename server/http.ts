@@ -53,6 +53,18 @@ export function api<P = Record<string, string>>(fn: Handler<P>) {
   };
 }
 
+/**
+ * Client address for rate limiting. `x-forwarded-for` is client-controlled unless a trusted proxy
+ * overwrites it, so it is only used when TRUST_PROXY=1.
+ */
+export function clientIp(req: NextRequest): string {
+  if (process.env.TRUST_PROXY === "1") {
+    const forwarded = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
+    if (forwarded) return forwarded;
+  }
+  return "direct";
+}
+
 export async function body(req: NextRequest): Promise<unknown> {
   const type = req.headers.get("content-type") ?? "";
   if (!type.includes("application/json")) throw new ApiError(415, "UNSUPPORTED_MEDIA", "Send JSON.");

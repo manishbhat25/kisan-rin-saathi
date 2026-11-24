@@ -6,7 +6,7 @@ import type { Actor } from "@/server/auth/actor";
 import { json, prisma } from "@/server/db";
 import type { Explanation } from "@/server/ml/assess";
 import type { RuleResult } from "@/server/ml/rules";
-import { loadForActor } from "./access";
+import { OFFICER_VISIBLE, loadForActor, operatorScope } from "./access";
 import { activeDocuments, readDetails, type Details, type RevisionSnapshot } from "./details";
 
 export interface ListFilters {
@@ -16,11 +16,11 @@ export interface ListFilters {
 }
 
 export async function listApplications(actor: Actor, filters: ListFilters = {}) {
-  const where: Prisma.ApplicationWhereInput = {};
+  let where: Prisma.ApplicationWhereInput = {};
   if (actor.role === "FARMER") where.farmerId = actor.id;
-  else if (actor.role === "OPERATOR") where.assistedByOperatorId = actor.id;
+  else if (actor.role === "OPERATOR") where = operatorScope(actor.id);
   else if (isOfficer(actor.role)) {
-    where.route = actor.route!;
+    where = { ...OFFICER_VISIBLE, route: actor.route! };
     where.status = { not: "DRAFT" };
   } else return [];
 
@@ -304,7 +304,7 @@ export async function listNotifications(actor: Actor, limit = 50) {
 export async function officerStats(actor: Actor) {
   const grouped = await prisma.application.groupBy({
     by: ["status"],
-    where: { route: actor.route!, status: { not: "DRAFT" } },
+    where: { ...OFFICER_VISIBLE, route: actor.route!, status: { not: "DRAFT" } },
     _count: { _all: true },
   });
   return Object.fromEntries(grouped.map((row) => [row.status, row._count._all])) as Record<string, number>;

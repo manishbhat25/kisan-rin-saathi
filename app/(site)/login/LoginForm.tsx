@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { FieldShell, Input } from "@/components/forms/fields";
 import { Alert, Button } from "@/components/ui";
 import { ApiClientError, apiFetch } from "@/lib/client/api";
+import { safeNextPath } from "@/lib/domain/redirect";
 import { loginSchema } from "@/lib/domain/schemas";
 
 type Values = { email: string; password: string };
@@ -24,7 +25,7 @@ export function LoginForm({ next }: { next?: string }) {
     }
     try {
       const result = await apiFetch<{ home: string }>("/api/auth/login", { body: parsed.data });
-      const target = next && next.startsWith("/") && !next.startsWith("//") ? next : result.home;
+      const target = safeNextPath(next) ?? result.home;
       window.location.assign(target);
     } catch (error) {
       setMessage(error instanceof ApiClientError ? error.message : "Sign-in failed. Please try again.");

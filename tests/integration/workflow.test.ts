@@ -2,7 +2,8 @@ import { randomUUID } from "node:crypto";
 import path from "node:path";
 import { beforeAll, describe, expect, it } from "vitest";
 import { prisma } from "@/server/db";
-import { createAssistanceCode, linkFarmer } from "@/server/domain/accounts";
+import { loadForActor } from "@/server/domain/access";
+import { createAssistanceCode, linkFarmer, revokeAuthorizations } from "@/server/domain/accounts";
 import {
   createApplication,
   resubmitApplication,
@@ -225,6 +226,22 @@ describe("Journey 5: assisted submission", () => {
     expect(officerView.assistedBy?.ref).toMatch(/^OP-/);
     expect(JSON.stringify(officerView)).not.toContain(w.operator.email);
     expect(await code(withdrawApplication(w.operator, app.id, { expectedVersion: sent.version }))).toBe("FORBIDDEN");
+
+    const farmerOwn = await submitted(w.farmer2, "GOVERNMENT", GOOD_GOV, ["IDENTITY_PROOF"]);
+    const copy = createApplication(w.operator, {
+      route: "BANK",
+      clientRequestId: randomUUID(),
+      farmerId: w.farmer2.id,
+      parentApplicationId: farmerOwn.id,
+      prefillFields: ["fullName"],
+    });
+    expect(await code(copy)).toBe("FORBIDDEN");
+
+    await revokeAuthorizations(w.farmer2);
+    expect(await code(getApplicationView(w.operator, app.id))).toBe("NOT_FOUND");
+    expect(await listApplications(w.operator)).toHaveLength(0);
+    const doc = await prisma.document.findFirstOrThrow({ where: { applicationId: app.id } });
+    expect(await code(loadForActor(prisma, w.operator, doc.applicationId))).toBe("NOT_FOUND");
   });
 });
 
@@ -244,6 +261,19 @@ describe("Journey 6: unauthorized access", () => {
 
     const draft = await createApplication(w.farmer, { route: "GOVERNMENT", clientRequestId: randomUUID() });
     expect(await code(getApplicationView(w.gov, draft.id))).toBe("NOT_FOUND");
+    await withdrawApplication(w.farmer, draft.id, { expectedVersion: draft.version });
+    expect(await code(getApplicationView(w.gov, draft.id))).toBe("NOT_FOUND");
+    expect((await listApplications(w.gov)).some((item) => item.id === draft.id)).toBe(false);
+
+    expect(
+      await code(
+        sendReview(w.gov, govApp.id, {
+          expectedVersion: (await startReview(w.gov, govApp.id, { expectedVersion: govApp.version })).version,
+          summary: "Please check the details below.",
+          items: [{ itemType: "FIELD", fieldKey: "creditHistory", message: "This is a bank-only field." }],
+        }),
+      ),
+    ).toBe("VALIDATION_ERROR");
     const queue = await listApplications(w.gov);
     expect(queue.every((item) => item.route === "GOVERNMENT" && item.status !== "DRAFT")).toBe(true);
   });

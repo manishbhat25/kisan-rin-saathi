@@ -1,5 +1,6 @@
 import type { Application } from "@prisma/client";
 import { STATUS_LABELS, label, type ApplicationStatus, type FinancingRoute } from "@/lib/domain/constants";
+import { fieldsFor } from "@/lib/domain/fields";
 import { canPerform } from "@/lib/domain/stateMachine";
 import { decisionSchema, internalNoteSchema, sendReviewSchema, versionSchema } from "@/lib/domain/schemas";
 import type { Actor } from "@/server/auth/actor";
@@ -7,13 +8,14 @@ import { json, prisma, type Tx } from "@/server/db";
 import { ApiError, badRequest, conflict, staleVersion } from "@/server/errors";
 import { runAssessment as computeAssessment } from "@/server/ml/assess";
 import { DEFAULT_RULES, type RuleConfig } from "@/server/ml/rules";
-import { assertOfficerFor, loadForActor } from "./access";
+import { activeAuthorization, assertOfficerFor, loadForActor } from "./access";
 import type { RevisionSnapshot } from "./details";
 import { audit, notifyUsers } from "./events";
 import { applyTransition } from "./transition";
 
-function applicantRecipients(app: Application): string[] {
-  return [app.farmerId, ...(app.assistedByOperatorId ? [app.assistedByOperatorId] : [])];
+async function applicantRecipients(tx: Tx | typeof prisma, app: Application): Promise<string[]> {
+  const operatorActive = app.assistedByOperatorId && (await activeAuthorization(tx, app.assistedByOperatorId, app.farmerId));
+  return [app.farmerId, ...(operatorActive ? [app.assistedByOperatorId!] : [])];
 }
 
 async function officerApp(tx: Tx | typeof prisma, actor: Actor, id: string) {
@@ -34,7 +36,7 @@ export async function startReview(actor: Actor, id: string, input: unknown) {
       expectedVersion,
       note: app.status === "RESUBMITTED" ? `Review of revision ${app.currentRevisionNo} started` : "Review started",
     });
-    await notifyUsers(tx, applicantRecipients(app), {
+    await notifyUsers(tx, await applicantRecipients(tx, app), {
       type: "UNDER_REVIEW",
       title: `${app.reference} is under review`,
       body: `An officer from ${actor.organizationName ?? "the reviewing organization"} has started reviewing your application.`,
@@ -138,7 +140,7 @@ export async function runAssessment(actor: Actor, id: string, input: unknown) {
         modelVersion: computed.model.version,
         rulesVersion: rules.version,
       });
-      await notifyUsers(tx, applicantRecipients(app), {
+      await notifyUsers(tx, await applicantRecipients(tx, app), {
         type: "ASSESSMENT_COMPLETED",
         title: `Eligibility assessment ready for ${app.reference}`,
         body: `Result: ${label(computed.outcome)}. This is advisory; the officer will make the final decision.`,
@@ -176,6 +178,9 @@ export async function sendReview(actor: Actor, id: string, input: unknown) {
   }
   return prisma.$transaction(async (tx) => {
     const app = await officerApp(tx, actor, id);
+    const knownFields = new Set(fieldsFor(app.route as FinancingRoute).map((field) => field.key));
+    const badField = data.items.find((item) => item.itemType === "FIELD" && !knownFields.has(item.fieldKey ?? ""));
+    if (badField) throw badRequest(`"${badField.fieldKey}" is not a field on this application.`);
     const updated = await applyTransition(tx, {
       app,
       action: "REQUEST_CHANGES",
@@ -208,7 +213,7 @@ export async function sendReview(actor: Actor, id: string, input: unknown) {
       items: data.items.length,
       revisionNo: app.currentRevisionNo,
     });
-    await notifyUsers(tx, applicantRecipients(app), {
+    await notifyUsers(tx, await applicantRecipients(tx, app), {
       type: "CHANGES_REQUESTED",
       title: `Action required on ${app.reference}`,
       body: `The officer has asked for ${data.items.length} change(s). Please review and resubmit your application.`,
@@ -317,7 +322,7 @@ export async function recordDecision(actor: Actor, id: string, input: unknown) {
         body: "Your application needs a closer look by a senior reviewer. No action is needed from you right now.",
       },
     }[data.decision];
-    await notifyUsers(tx, applicantRecipients(app), {
+    await notifyUsers(tx, await applicantRecipients(tx, app), {
       type: `APPLICATION_${data.decision}`,
       ...messages,
       link: `/applications/${app.id}`,

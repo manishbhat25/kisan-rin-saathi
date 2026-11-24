@@ -355,12 +355,12 @@ export function DecisionForm({ view }: { view: ApplicationView }) {
         <div className="mt-4 space-y-3">
           {overriding ? (
             <Alert tone="warning">
-              The latest assessment was “{label(latest!.outcome)}”. You can still approve, but you must record why. The override is shown to auditors.
+              The latest assessment was “{label(latest!.outcome)}”. You can still approve, but you must record why. The override is recorded in the audit log, and your reason is shown to the farmer.
             </Alert>
           ) : null}
           <FieldShell
             id="decision-reason"
-            label={decision === "APPROVED" ? (overriding ? "Reason for approving against the assessment" : "Note for the farmer (optional)") : "Reason (shown to the farmer)"}
+            label={decision === "APPROVED" ? (overriding ? "Reason for approving against the assessment (shown to the farmer)" : "Note for the farmer (optional)") : "Reason (shown to the farmer)"}
             error={reasonError ?? undefined}
           >
             <Textarea id="decision-reason" value={reason} maxLength={2000} onChange={(event) => setReason(event.target.value)} invalid={Boolean(reasonError)} />

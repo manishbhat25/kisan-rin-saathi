@@ -1,4 +1,4 @@
-import type { Application } from "@prisma/client";
+import type { Application, Prisma } from "@prisma/client";
 import type { Actor } from "@/server/auth/actor";
 import type { Tx } from "@/server/db";
 import { prisma } from "@/server/db";
@@ -12,15 +12,26 @@ export async function activeAuthorization(tx: Tx | typeof prisma, operatorId: st
   });
 }
 
-export function canView(actor: Actor, app: Application): boolean {
+/** Officers only see applications that were submitted at least once (a withdrawn draft stays private). */
+export const OFFICER_VISIBLE = { submittedAt: { not: null } } satisfies Prisma.ApplicationWhereInput;
+
+/** Operators only see applications they assisted, and only while the farmer's authorization is current. */
+export function operatorScope(operatorId: string): Prisma.ApplicationWhereInput {
+  return {
+    assistedByOperatorId: operatorId,
+    farmer: { farmerAuthorizations: { some: { operatorId, revokedAt: null, expiresAt: { gt: new Date() } } } },
+  };
+}
+
+export async function canView(tx: Tx | typeof prisma, actor: Actor, app: Application): Promise<boolean> {
   switch (actor.role) {
     case "FARMER":
       return app.farmerId === actor.id;
     case "GOV_OFFICER":
     case "BANK_OFFICER":
-      return actor.route === app.route && app.status !== "DRAFT";
+      return actor.route === app.route && app.submittedAt !== null;
     case "OPERATOR":
-      return app.assistedByOperatorId === actor.id;
+      return app.assistedByOperatorId === actor.id && Boolean(await activeAuthorization(tx, actor.id, app.farmerId));
     default:
       return false;
   }
@@ -30,7 +41,7 @@ export function canView(actor: Actor, app: Application): boolean {
 export async function loadForActor(tx: Tx | typeof prisma, actor: Actor, id: string): Promise<Application> {
   const app = await tx.application.findUnique({ where: { id } });
   if (!app) throw notFound("Application not found, or you do not have access to it.");
-  if (!canView(actor, app)) {
+  if (!(await canView(tx, actor, app))) {
     // Recorded outside any open transaction (which is about to roll back) and without blocking the response.
     void audit(prisma, actor, "ACCESS_DENIED", { type: "Application", id, applicationId: null }, { route: app.route }).catch(
       () => undefined,

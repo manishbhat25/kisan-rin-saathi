@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { safeNextPath } from "@/lib/domain/redirect";
 import { Card } from "@/components/ui";
 import { currentActor, homeFor } from "@/server/auth/actor";
 import { LoginForm } from "./LoginForm";
@@ -17,7 +18,7 @@ const DEMO_ACCOUNTS = [
 export default async function LoginPage({ searchParams }: { searchParams: Promise<{ next?: string }> }) {
   const { next } = await searchParams;
   const actor = await currentActor();
-  if (actor) redirect(next?.startsWith("/") && !next.startsWith("//") ? next : homeFor(actor.role));
+  if (actor) redirect(safeNextPath(next) ?? homeFor(actor.role));
 
   return (
     <div className="mx-auto grid max-w-4xl gap-6 md:grid-cols-[1fr_320px]">

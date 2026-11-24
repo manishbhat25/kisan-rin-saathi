@@ -90,6 +90,7 @@ export async function createApplication(actor: Actor, input: unknown): Promise<A
 
     let parent: Application | null = null;
     if (data.parentApplicationId) {
+      if (actor.role !== "FARMER") throw forbidden("Only the farmer can start an application on the other route.");
       parent = await tx.application.findUnique({ where: { id: data.parentApplicationId } });
       if (!parent || parent.farmerId !== farmerId) throw notFound("The earlier application was not found.");
       if (parent.route === data.route) throw badRequest("Choose the other financing route.");
@@ -189,6 +190,14 @@ export async function uploadDocument(actor: Actor, id: string, docType: string, 
   const safeName = file.name.replace(/[^\w.\- ]/g, "_").slice(0, 120) || `document${detected.ext}`;
   return prisma.$transaction(async (tx) => {
     const now = new Date();
+    // Re-checked inside the write transaction so an upload cannot slip in after a concurrent submit.
+    const stillEditable = await tx.application.updateMany({
+      where: { id: app.id, status: { in: [...EDITABLE] } },
+      data: { updatedAt: now },
+    });
+    if (stillEditable.count === 0) {
+      throw conflict("NOT_EDITABLE", "Documents can only be changed while the application is a draft or when changes are requested.");
+    }
     await tx.document.updateMany({
       where: { applicationId: app.id, docType, supersededAt: null },
       data: { supersededAt: now },
@@ -305,7 +314,7 @@ export async function resubmitApplication(actor: Actor, id: string, input: unkno
     const unresolved = openItems.filter((item) => {
       if (item.itemType === "DOCUMENT") return !changed.includes(`document:${item.documentType}`);
       if (item.itemType === "FIELD") return !changed.includes(item.fieldKey ?? "") && !item.farmerResponse;
-      return !item.farmerResponse && changed.length === 0;
+      return !item.farmerResponse;
     });
     if (unresolved.length > 0) {
       throw new ApiError(400, "CORRECTIONS_INCOMPLETE", "Some requested changes have not been addressed yet.", {

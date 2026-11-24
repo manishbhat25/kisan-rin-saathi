@@ -145,34 +145,16 @@ export function fieldLabel(route: FinancingRoute, key: string): string {
   return fieldsFor(route).find((field) => field.key === key)?.label ?? key;
 }
 
-/** Fields that feed the model or rules. A change in any of them makes earlier assessments stale. */
+/** Identity and address text that neither the model nor the rules read. */
+const NON_ASSESSED_FIELDS = new Set(["fullName", "district", "village"]);
+
+/**
+ * Fields that feed the model or rules. A change in any of them makes earlier assessments stale.
+ * Derived from the form definitions (everything except the fields above) so a new input cannot be forgotten.
+ */
 export const ASSESSMENT_FIELDS: Record<FinancingRoute, string[]> = {
-  GOVERNMENT: [
-    "age",
-    "farmerCategory",
-    "landholdingAcres",
-    "cropCategory",
-    "irrigationType",
-    "annualAgriIncome",
-    "hasBankAccount",
-    "priorSchemeDefault",
-    "requestedAmount",
-    "stateCode",
-  ],
-  BANK: [
-    "age",
-    "annualIncome",
-    "existingMonthlyEmi",
-    "creditHistory",
-    "yearsFarming",
-    "landholdingAcres",
-    "loanPurpose",
-    "requestedAmount",
-    "tenureMonths",
-    "collateralType",
-    "collateralValue",
-    "stateCode",
-  ],
+  GOVERNMENT: GOVERNMENT_FIELDS.map((field) => field.key).filter((key) => !NON_ASSESSED_FIELDS.has(key)),
+  BANK: BANK_FIELDS.map((field) => field.key).filter((key) => !NON_ASSESSED_FIELDS.has(key)),
 };
 
 export interface DocumentRequirement {

@@ -544,7 +544,11 @@ export function ApplicationForm({ view, detailHref }: { view: ApplicationView; d
                       key={item.id}
                       id={`resp-${item.id}`}
                       label={`${item.itemType === "FIELD" ? fields.find((f) => f.key === item.fieldKey)?.label : item.itemType === "DOCUMENT" ? label(item.documentType) : "General"}: ${item.message}`}
-                      hint="Optional for fields and documents you changed. Required if you did not change it — explain why."
+                      hint={
+                        item.itemType === "GENERAL"
+                          ? "Required. Tell the officer what you did or why no change is needed."
+                          : "Optional for fields and documents you changed. Required if you did not change it — explain why."
+                      }
                     >
                       <Textarea
                         id={`resp-${item.id}`}

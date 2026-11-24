@@ -1,6 +1,8 @@
+import { isOfficer } from "@/lib/domain/constants";
 import { requireActor } from "@/server/auth/actor";
-import { prisma } from "@/server/db";
+import { json, prisma } from "@/server/db";
 import { loadForActor } from "@/server/domain/access";
+import type { RevisionSnapshot } from "@/server/domain/details";
 import { audit } from "@/server/domain/events";
 import { notFound } from "@/server/errors";
 import { api } from "@/server/http";
@@ -11,6 +13,13 @@ export const GET = api<{ id: string }>(async (_req, { id }) => {
   const doc = await prisma.document.findUnique({ where: { id } });
   if (!doc) throw notFound();
   await loadForActor(prisma, actor, doc.applicationId);
+  if (isOfficer(actor.role)) {
+    const revisions = await prisma.applicationRevision.findMany({ where: { applicationId: doc.applicationId }, select: { snapshot: true } });
+    const submitted = revisions.some((revision) =>
+      json<RevisionSnapshot>(revision.snapshot, { details: {}, documents: [] }).documents.some((item) => item.id === doc.id),
+    );
+    if (!submitted) throw notFound();
+  }
   const file = await readStoredFile(doc.storedName).catch(() => {
     throw notFound("The file could not be found in storage.");
   });

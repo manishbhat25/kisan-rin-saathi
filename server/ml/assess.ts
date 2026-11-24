@@ -105,7 +105,7 @@ function explain(model: ExportedModel, x: number[], probability: number): Explan
     baseRate: base / treeCount,
     topFactors,
     decisionPath: treeCount === 1 ? decisionPath : [],
-    note: "Contributions show how each answer moved the model's estimate up or down from its starting point. The model was trained on synthetic data with balanced outcomes, so the starting point is not a real approval rate.",
+    note: "Contributions show how each answer moved the model's estimate up or down from its starting point. The model was trained on synthetic data with eligible and ineligible cases weighted equally, so the starting point is not a real approval rate.",
   };
 }
 

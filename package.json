@@ -16,6 +16,8 @@
     "test": "node scripts/env.mjs --test vitest run",
     "test:ml": "node scripts/python.mjs -m pytest ml/tests -q",
     "test:e2e": "playwright test",
+    "e2e:server": "node scripts/e2e-server.mjs",
+    "db:pg-schema": "node scripts/make-pg-schema.mjs",
     "test:persistence": "node scripts/persistence-check.mjs",
     "typecheck": "tsc --noEmit",
     "lint": "eslint ."

@@ -1,0 +1,16 @@
+node_modules
+.next
+.next-e2e
+.git
+.env
+.env.*
+!.env.example
+prisma/*.db
+prisma/*.db-*
+storage
+ml/.venv
+ml/data
+**/__pycache__
+test-results
+playwright-report
+.vercel

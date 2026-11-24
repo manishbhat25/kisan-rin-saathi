@@ -6,8 +6,8 @@ test.describe("Journey 8: reliability under retries, races and bad input", () =>
   test("health check reports the database and model are ready", async ({ request }) => {
     const res = await request.get("/api/health");
     expect(res.ok()).toBeTruthy();
-    const json = await res.json();
-    expect(JSON.stringify(json)).toMatch(/ok/i);
+    const { data } = await res.json();
+    expect(data).toMatchObject({ status: "ok", database: "ok", models: "ok" });
   });
 
   test("retrying create with the same request id does not create a duplicate", async ({ page }) => {

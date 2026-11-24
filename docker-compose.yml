@@ -1,0 +1,50 @@
+# Local demo stack: PostgreSQL + the portal. For local use only; credentials below are demo values.
+# Not yet verified on the development machine (Docker was not installed). See README "Docker (unverified)".
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: portal
+      POSTGRES_PASSWORD: portal-demo-only
+      POSTGRES_DB: kisan_rin
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U portal -d kisan_rin"]
+      interval: 5s
+      retries: 10
+
+  app:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://portal:portal-demo-only@db:5432/kisan_rin
+      # Plain http on localhost; remove when served over https.
+      INSECURE_COOKIES: "1"
+    ports:
+      - "127.0.0.1:3000:3000"
+    volumes:
+      - uploads:/data/uploads
+
+  # One-off: loads demo accounts and sample applications. Run with:
+  #   docker compose run --rm seed
+  seed:
+    build:
+      context: .
+      target: build
+    profiles: ["seed"]
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://portal:portal-demo-only@db:5432/kisan_rin
+      UPLOAD_DIR: /data/uploads
+    volumes:
+      - uploads:/data/uploads
+    command: ["npx", "tsx", "prisma/seed.ts"]
+
+volumes:
+  pgdata:
+  uploads:

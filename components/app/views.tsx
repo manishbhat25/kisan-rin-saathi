@@ -147,13 +147,19 @@ export function AssessmentPanel({ view, audience }: { view: ApplicationView; aud
         <div>
           <h3 className="text-sm font-semibold">{audience === "farmer" ? "What needs attention" : "Conditions not met"}</h3>
           <ul className="mt-2 space-y-2">
-            {failed.map((rule) => (
-              <li key={rule.id} className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm">
-                <span className="font-semibold text-red-900">{rule.label}</span>
-                <span className="ml-2 text-xs font-medium text-red-800">{rule.severity === "HARD" ? "required" : "recommended"}</span>
-                {rule.message ? <span className="block text-red-900">{rule.message}</span> : null}
-              </li>
-            ))}
+            {failed.map((rule) => {
+              const hard = rule.severity === "HARD";
+              return (
+                <li
+                  key={rule.id}
+                  className={cx("rounded-lg border px-3 py-2 text-sm", hard ? "border-red-200 bg-red-50 text-red-900" : "border-amber-200 bg-amber-50 text-amber-950")}
+                >
+                  <span className="font-semibold">{rule.label}</span>
+                  <span className="ml-2 text-xs font-medium">{hard ? "required" : "recommended"}</span>
+                  {rule.message ? <span className="block">{rule.message}</span> : null}
+                </li>
+              );
+            })}
           </ul>
         </div>
       ) : null}
@@ -189,7 +195,7 @@ export function AssessmentPanel({ view, audience }: { view: ApplicationView; aud
             <p>
               Model estimate of eligibility: <strong>{Math.round(latest.score * 100)}%</strong>
               {audience === "officer" ? (
-                <span className="text-muted"> (average applicant in training data: {Math.round(latest.explanation.baseRate * 100)}%)</span>
+                <span className="text-muted"> (model starting point: {Math.round(latest.explanation.baseRate * 100)}%)</span>
               ) : null}
             </p>
             {latest.explanation.topFactors.length > 0 ? (

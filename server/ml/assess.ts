@@ -1,5 +1,5 @@
 import { label, type AssessmentOutcome, type FinancingRoute } from "@/lib/domain/constants";
-import { documentRequirements, fieldLabel } from "@/lib/domain/fields";
+import { documentRequirements, fieldLabel, fieldsFor } from "@/lib/domain/fields";
 import { encodeFeatures, withEngineered, type RawInput } from "./features";
 import { leafPath, loadModel, predictProbability, type ExportedModel } from "./model";
 import { evaluateRules, type RuleConfig, type RuleResult } from "./rules";
@@ -91,8 +91,9 @@ function explain(model: ExportedModel, x: number[], probability: number): Explan
     const wentLeft = nodes[i + 1] === first.childrenLeft[node];
     const threshold = first.threshold[node];
     const name = featureLabel(model.route, feature);
-    const description = feature.includes("=")
-      ? `${name} — ${wentLeft ? "no" : "yes"}`
+    const yesNo = feature.includes("=") || fieldsFor(model.route).find((field) => field.key === feature)?.kind === "boolean";
+    const description = yesNo
+      ? `${name} — ${value >= 0.5 ? "yes" : "no"}`
       : `${name} is ${formatValue(feature, value)} (${wentLeft ? "at or below" : "above"} ${formatValue(feature, threshold)})`;
     decisionPath.push({ feature, label: name, threshold, value, wentLeft, description });
   }
@@ -104,7 +105,7 @@ function explain(model: ExportedModel, x: number[], probability: number): Explan
     baseRate: base / treeCount,
     topFactors,
     decisionPath: treeCount === 1 ? decisionPath : [],
-    note: "Contributions show how each input moved the model's estimate away from the average case in the synthetic training data.",
+    note: "Contributions show how each answer moved the model's estimate up or down from its starting point. The model was trained on synthetic data with balanced outcomes, so the starting point is not a real approval rate.",
   };
 }
 

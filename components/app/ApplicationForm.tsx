@@ -59,8 +59,9 @@ export function ApplicationForm({ view, detailHref }: { view: ApplicationView; d
     return map;
   }, [view.openItems]);
 
+  const initialValues = useMemo(() => toFormValues(fields, view.details), [fields, view.details]);
   const { register, getValues, setError, clearErrors, watch, formState, reset } = useForm<FormValues>({
-    defaultValues: toFormValues(fields, view.details),
+    defaultValues: initialValues,
   });
   const values = watch();
   const [step, setStep] = useState(0);
@@ -232,7 +233,7 @@ export function ApplicationForm({ view, detailHref }: { view: ApplicationView; d
     let control: React.ReactNode;
     if (field.kind === "select" || field.kind === "state") {
       control = (
-        <Select {...common} {...register(field.key)}>
+        <Select {...common} defaultValue={initialValues[field.key]} {...register(field.key)}>
           <option value="">Choose…</option>
           {field.options?.map((option) => (
             <option key={option.value} value={option.value}>
@@ -270,7 +271,14 @@ export function ApplicationForm({ view, detailHref }: { view: ApplicationView; d
                 key={value}
                 className="flex min-h-11 flex-1 cursor-pointer items-center gap-2 rounded-lg border border-line bg-white px-3 has-[:checked]:border-brand-600 has-[:checked]:bg-brand-50"
               >
-                <input type="radio" value={value} {...register(field.key)} id={value === "true" ? id : undefined} className="h-4 w-4 accent-brand-700" />
+                <input
+                  type="radio"
+                  value={value}
+                  defaultChecked={initialValues[field.key] === value}
+                  {...register(field.key)}
+                  id={value === "true" ? id : undefined}
+                  className="h-4 w-4 accent-brand-700"
+                />
                 {text}
               </label>
             ))}
@@ -289,6 +297,7 @@ export function ApplicationForm({ view, detailHref }: { view: ApplicationView; d
           type="text"
           inputMode={field.kind === "number" ? "decimal" : field.kind === "integer" ? "numeric" : undefined}
           autoComplete={field.key === "fullName" ? "name" : "off"}
+          defaultValue={initialValues[field.key]}
           {...register(field.key)}
         />
       );

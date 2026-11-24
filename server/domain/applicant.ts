@@ -93,6 +93,13 @@ export async function createApplication(actor: Actor, input: unknown): Promise<A
       parent = await tx.application.findUnique({ where: { id: data.parentApplicationId } });
       if (!parent || parent.farmerId !== farmerId) throw notFound("The earlier application was not found.");
       if (parent.route === data.route) throw badRequest("Choose the other financing route.");
+      const latest = await tx.assessmentResult.findFirst({ where: { applicationId: parent.id }, orderBy: { createdAt: "desc" } });
+      const closedOut = parent.status === "REJECTED" || parent.status === "WITHDRAWN" || latest?.outcome === "NOT_ELIGIBLE";
+      if (!closedOut) {
+        throw conflict("INVALID_TRANSITION", "The other route can be started after this application is rejected, withdrawn or assessed as not eligible.");
+      }
+      const activeChild = await tx.application.findFirst({ where: { parentApplicationId: parent.id, status: { not: "WITHDRAWN" } } });
+      if (activeChild) throw conflict("DUPLICATE", `An application on the other route already exists (${activeChild.reference}).`);
       const parentDetails = await readDetails(tx, parent);
       const allowed = new Set(data.prefillFields ?? []);
       for (const key of SHARED_PREFILL_FIELDS) {

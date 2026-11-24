@@ -184,6 +184,17 @@ describe("Journey 4: rejection and alternative route", () => {
     expect(altDetails?.annualIncome).toBeNull();
     const list = await listApplications(w.farmer);
     expect(list.map((item) => item.id)).toEqual(expect.arrayContaining([app.id, alt.id]));
+
+    expect(await code(startAlternative(w.farmer, app.id, { clientRequestId: randomUUID(), prefillFields: [] }))).toBe("DUPLICATE");
+  });
+
+  it("does not allow the other route while the application is still in progress", async () => {
+    const app = await submitted(w.farmer, "GOVERNMENT", GOOD_GOV, ["IDENTITY_PROOF"]);
+    expect(await code(startAlternative(w.farmer, app.id, { clientRequestId: randomUUID(), prefillFields: ["fullName"] }))).toBe(
+      "INVALID_TRANSITION",
+    );
+    const direct = createApplication(w.farmer, { route: "BANK", clientRequestId: randomUUID(), parentApplicationId: app.id, prefillFields: ["fullName"] });
+    expect(await code(direct)).toBe("INVALID_TRANSITION");
   });
 });
 

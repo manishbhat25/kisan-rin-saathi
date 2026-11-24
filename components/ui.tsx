@@ -206,20 +206,66 @@ export function EmptyState({ title, children, action }: { title: string; childre
   );
 }
 
-export function Stat({ label: text, value, href, tone }: { label: string; value: ReactNode; href?: string; tone?: string }) {
+const STAT_ACCENTS = {
+  brand: { bar: "bg-brand-600", value: "text-brand-800" },
+  amber: { bar: "bg-amber-500", value: "text-amber-800" },
+  sky: { bar: "bg-sky-500", value: "text-sky-900" },
+  violet: { bar: "bg-violet-500", value: "text-violet-900" },
+  slate: { bar: "bg-slate-400", value: "text-ink" },
+};
+
+export function Stat({
+  label: text,
+  value,
+  href,
+  tone,
+  accent,
+  hint,
+  active,
+}: {
+  label: string;
+  value: ReactNode;
+  href?: string;
+  tone?: string;
+  accent?: keyof typeof STAT_ACCENTS;
+  hint?: ReactNode;
+  active?: boolean;
+}) {
+  const style = accent ? STAT_ACCENTS[accent] : undefined;
   const body = (
     <>
-      <span className="block text-sm text-muted">{text}</span>
-      <span className={cx("mt-1 block text-2xl font-bold", tone ?? "text-ink")}>{value}</span>
+      {style ? <span aria-hidden className={cx("absolute inset-y-0 left-0 w-1.5", style.bar)} /> : null}
+      <span className="block text-sm font-medium text-muted">{text}</span>
+      <span className={cx("mt-1 block text-3xl font-bold tabular-nums", tone ?? style?.value ?? "text-ink")}>{value}</span>
+      {hint ? <span className="mt-1 block text-xs text-muted">{hint}</span> : null}
     </>
   );
-  const className = "block rounded-xl border border-line bg-white p-4 shadow-sm";
+  const className = cx(
+    "relative block overflow-hidden rounded-xl border bg-white p-4 shadow-sm",
+    style && "pl-5",
+    active ? "border-brand-600 ring-2 ring-brand-600/30" : "border-line",
+  );
   return href ? (
-    <Link href={href} className={cx(className, "hover:border-brand-500")}>
+    <Link href={href} aria-current={active ? "true" : undefined} className={cx(className, "transition hover:-translate-y-0.5 hover:border-brand-500 hover:shadow-md")}>
       {body}
     </Link>
   ) : (
     <div className={className}>{body}</div>
+  );
+}
+
+export function ProgressBar({ value, label: text }: { value: number; label: string }) {
+  const pct = Math.max(0, Math.min(100, Math.round(value)));
+  return (
+    <div>
+      <div className="flex items-center justify-between text-xs font-medium text-muted">
+        <span>{text}</span>
+        <span className="tabular-nums text-brand-800">{pct}%</span>
+      </div>
+      <div className="mt-1 h-2 overflow-hidden rounded-full bg-brand-100" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100} aria-label={text}>
+        <div className="h-full rounded-full bg-brand-600" style={{ width: `${pct}%` }} />
+      </div>
+    </div>
   );
 }
 

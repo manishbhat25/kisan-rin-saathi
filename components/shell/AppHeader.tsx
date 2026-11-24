@@ -3,7 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { apiFetch } from "@/lib/client/api";
 import { LANG_COOKIE } from "@/lib/i18n";
 import { useI18n } from "@/components/providers";
@@ -39,7 +39,10 @@ function NotificationBell() {
     queryFn: () => apiFetch<{ unread: number }>("/api/notifications"),
     refetchInterval: 30_000,
   });
-  const unread = data?.unread ?? 0;
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  // The query cache can already hold a count before hydration, so render it only after mount.
+  const unread = mounted ? (data?.unread ?? 0) : 0;
   return (
     <Link
       href="/notifications"

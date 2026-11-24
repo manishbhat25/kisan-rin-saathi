@@ -1,12 +1,14 @@
 import Link from "next/link";
 import { ApplicationTable } from "@/components/app/views";
-import { Alert, Card, CardTitle, EmptyState, LinkButton, PageHeader, Stat } from "@/components/ui";
+import { Alert, Card, CardTitle, EmptyState, LinkButton, PageHeader, ProgressBar, Stat } from "@/components/ui";
 import { getDict } from "@/lib/i18n-server";
 import { requirePageActor } from "@/server/auth/actor";
 import { getProfile } from "@/server/domain/accounts";
 import { listApplications } from "@/server/domain/queries";
 
 export const metadata = { title: "Dashboard" };
+
+const PROFILE_FIELDS = 6;
 
 const ACTIVE = new Set(["SUBMITTED", "UNDER_REVIEW", "ASSESSMENT_PENDING", "ASSESSMENT_COMPLETED", "RESUBMITTED", "HUMAN_REVIEW_REQUIRED"]);
 
@@ -30,6 +32,16 @@ const COPY = {
     help: "Getting help",
     helpBody:
       "A service-centre operator can fill in the form with you. From your profile, create a one-time code and share it only with the operator you trust.",
+    startTitle: "Start a new application",
+    startBody: "Choose a route. Your saved profile fills in the first details for you.",
+    govHint: "Inputs, irrigation or small equipment",
+    bankHint: "Credit sized to your repayment capacity",
+    fixNow: "Fix now",
+    needActionHint: "Officer asked for changes",
+    draftsHint: "Not yet submitted",
+    withOfficerHint: "Being reviewed",
+    decidedHint: "Approved or rejected",
+    profileComplete: "Profile completeness",
   },
   hi: {
     subtitle: "अपने ऋण आवेदनों की स्थिति देखें, अधिकारियों को जवाब दें और नया आवेदन शुरू करें।",
@@ -49,6 +61,16 @@ const COPY = {
     viewProfile: "प्रोफ़ाइल देखें",
     help: "मदद",
     helpBody: "सेवा केंद्र संचालक आपके साथ फ़ॉर्म भर सकते हैं। अपनी प्रोफ़ाइल से एक बार का कोड बनाएँ और केवल भरोसेमंद संचालक को दें।",
+    startTitle: "नया आवेदन शुरू करें",
+    startBody: "एक विकल्प चुनें। आपकी सहेजी गई प्रोफ़ाइल से शुरुआती जानकारी अपने आप भर जाएगी।",
+    govHint: "खाद-बीज, सिंचाई या छोटे उपकरण",
+    bankHint: "चुकाने की क्षमता के अनुसार ऋण",
+    fixNow: "अभी सुधारें",
+    needActionHint: "अधिकारी ने बदलाव माँगे",
+    draftsHint: "अभी जमा नहीं हुए",
+    withOfficerHint: "जाँच चल रही है",
+    decidedHint: "स्वीकृत या अस्वीकृत",
+    profileComplete: "प्रोफ़ाइल पूर्णता",
   },
 };
 
@@ -61,44 +83,59 @@ export default async function FarmerDashboard() {
   const active = apps.filter((app) => ACTIVE.has(app.status));
   const decided = apps.filter((app) => app.status === "APPROVED" || app.status === "REJECTED");
   const p = profile.farmerProfile;
-  const profileGaps = !p ? 6 : [p.age, p.stateCode, p.district, p.village, p.farmerCategory, p.landholdingAcres].filter((v) => v === null).length;
+  const profileGaps = !p ? PROFILE_FIELDS : [p.age, p.stateCode, p.district, p.village, p.farmerCategory, p.landholdingAcres].filter((v) => v === null).length;
 
   return (
     <div>
-      <PageHeader
-        eyebrow={t.navDashboard}
-        title={`${t.welcome}, ${profile.displayName.split(" ")[0]}`}
-        subtitle={copy.subtitle}
-        actions={
-          <>
-            <LinkButton href="/farmer/applications/new?route=GOVERNMENT">{t.applyGov}</LinkButton>
-            <LinkButton href="/farmer/applications/new?route=BANK" variant="secondary">
-              {t.applyBank}
-            </LinkButton>
-          </>
-        }
-      />
+      <PageHeader eyebrow={t.navDashboard} title={`${t.welcome}, ${profile.displayName.split(" ")[0]}`} subtitle={copy.subtitle} />
 
       {actionRequired.length > 0 ? (
         <Alert tone="warning" title={t.actionRequired} className="mb-6">
-          <ul className="mt-1 space-y-1">
+          <ul className="mt-2 space-y-2">
             {actionRequired.map((app) => (
-              <li key={app.id}>
-                <Link className="font-semibold underline" href={`/farmer/applications/${app.id}`}>
-                  {app.reference}
-                </Link>{" "}
-                — {copy.changes(app.openCorrections)}
+              <li key={app.id} className="flex flex-wrap items-center justify-between gap-2">
+                <span>
+                  <Link className="font-mono font-semibold underline" href={`/farmer/applications/${app.id}`}>
+                    {app.reference}
+                  </Link>{" "}
+                  — {copy.changes(app.openCorrections)}
+                </span>
+                <LinkButton href={`/farmer/applications/${app.id}`} variant="warning" className="min-h-9 py-1">
+                  {copy.fixNow}
+                  <span className="sr-only"> {app.reference}</span>
+                </LinkButton>
               </li>
             ))}
           </ul>
         </Alert>
       ) : null}
 
+      <section aria-labelledby="start-heading" className="mb-6 rounded-2xl border border-brand-200 bg-brand-50 p-5">
+        <h2 id="start-heading" className="text-lg font-bold text-brand-900">
+          {copy.startTitle}
+        </h2>
+        <p className="mt-1 text-sm text-brand-900/80">{copy.startBody}</p>
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          <div className="rounded-xl border border-brand-200 bg-white p-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-brand-700">{copy.govHint}</p>
+            <LinkButton href="/farmer/applications/new?route=GOVERNMENT" className="mt-3 w-full">
+              {t.applyGov}
+            </LinkButton>
+          </div>
+          <div className="rounded-xl border border-brand-200 bg-white p-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-brand-700">{copy.bankHint}</p>
+            <LinkButton href="/farmer/applications/new?route=BANK" className="mt-3 w-full">
+              {t.applyBank}
+            </LinkButton>
+          </div>
+        </div>
+      </section>
+
       <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Stat label={copy.needAction} value={actionRequired.length} tone={actionRequired.length ? "text-amber-700" : undefined} />
-        <Stat label={copy.drafts} value={drafts.length} />
-        <Stat label={copy.withOfficer} value={active.length} />
-        <Stat label={copy.decided} value={decided.length} />
+        <Stat label={copy.needAction} value={actionRequired.length} accent={actionRequired.length ? "amber" : "slate"} hint={copy.needActionHint} />
+        <Stat label={copy.drafts} value={drafts.length} accent="slate" hint={copy.draftsHint} />
+        <Stat label={copy.withOfficer} value={active.length} accent="sky" hint={copy.withOfficerHint} />
+        <Stat label={copy.decided} value={decided.length} accent="brand" hint={copy.decidedHint} />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
@@ -125,8 +162,9 @@ export default async function FarmerDashboard() {
         <aside className="space-y-4">
           <Card>
             <CardTitle>{copy.yourProfile}</CardTitle>
-            <p className="text-sm text-muted">{profileGaps > 0 ? copy.gaps(profileGaps) : copy.complete}</p>
-            <LinkButton href="/farmer/profile" variant="secondary" className="mt-3 w-full">
+            <ProgressBar value={((PROFILE_FIELDS - profileGaps) / PROFILE_FIELDS) * 100} label={copy.profileComplete} />
+            <p className="mt-3 text-sm text-muted">{profileGaps > 0 ? copy.gaps(profileGaps) : copy.complete}</p>
+            <LinkButton href="/farmer/profile" variant={profileGaps > 0 ? "primary" : "secondary"} className="mt-3 w-full">
               {profileGaps > 0 ? copy.completeProfile : copy.viewProfile}
             </LinkButton>
           </Card>

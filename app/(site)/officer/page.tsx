@@ -11,11 +11,11 @@ import { listApplications, officerStats } from "@/server/domain/queries";
 export const metadata = { title: "Application queue" };
 
 const QUEUES = [
-  { key: "NEW", label: "New", statuses: ["SUBMITTED", "RESUBMITTED"] },
-  { key: "REVIEW", label: "In review", statuses: ["UNDER_REVIEW", "ASSESSMENT_PENDING", "ASSESSMENT_COMPLETED", "HUMAN_REVIEW_REQUIRED"] },
-  { key: "WAITING", label: "Waiting for farmer", statuses: ["CHANGES_REQUESTED"] },
-  { key: "DONE", label: "Decided", statuses: ["APPROVED", "REJECTED", "WITHDRAWN"] },
-];
+  { key: "NEW", label: "New", hint: "Submitted or resubmitted", accent: "sky", statuses: ["SUBMITTED", "RESUBMITTED"] },
+  { key: "REVIEW", label: "In review", hint: "Being assessed", accent: "violet", statuses: ["UNDER_REVIEW", "ASSESSMENT_PENDING", "ASSESSMENT_COMPLETED", "HUMAN_REVIEW_REQUIRED"] },
+  { key: "WAITING", label: "Waiting for farmer", hint: "Changes requested", accent: "amber", statuses: ["CHANGES_REQUESTED"] },
+  { key: "DONE", label: "Decided", hint: "Approved, rejected or withdrawn", accent: "brand", statuses: ["APPROVED", "REJECTED", "WITHDRAWN"] },
+] as const;
 
 export default async function OfficerQueue({ searchParams }: { searchParams: Promise<{ status?: string; q?: string; queue?: string }> }) {
   const params = await searchParams;
@@ -26,8 +26,8 @@ export default async function OfficerQueue({ searchParams }: { searchParams: Pro
     officerStats(actor),
     getDict(),
   ]);
-  const apps = queue ? all.filter((app) => queue.statuses.includes(app.status)) : all;
-  const count = (statuses: string[]) => statuses.reduce((sum, status) => sum + (stats[status] ?? 0), 0);
+  const apps = queue ? all.filter((app) => (queue.statuses as readonly string[]).includes(app.status)) : all;
+  const count = (statuses: readonly string[]) => statuses.reduce((sum, status) => sum + (stats[status] ?? 0), 0);
   const filtered = Boolean(params.status || params.q || params.queue);
 
   return (
@@ -43,8 +43,10 @@ export default async function OfficerQueue({ searchParams }: { searchParams: Pro
             key={item.key}
             label={item.label}
             value={count(item.statuses)}
-            href={`/officer?queue=${item.key}`}
-            tone={params.queue === item.key ? "text-brand-700" : undefined}
+            hint={item.hint}
+            accent={item.accent}
+            href={params.queue === item.key ? "/officer" : `/officer?queue=${item.key}`}
+            active={params.queue === item.key}
           />
         ))}
       </div>

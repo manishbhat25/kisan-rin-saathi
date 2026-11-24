@@ -3,6 +3,8 @@ import { Card, LinkButton } from "@/components/ui";
 import { getDict } from "@/lib/i18n-server";
 import { currentActor, homeFor } from "@/server/auth/actor";
 
+const ROUTE_CARD = "rounded-xl border border-brand-200 bg-brand-100 p-5 shadow-sm";
+
 const STEPS = [
   { title: "Compare", body: "See the government scheme and bank loan side by side in plain language." },
   { title: "Apply", body: "Fill a short form step by step, save drafts and upload documents from your phone." },
@@ -43,22 +45,22 @@ export default async function LandingPage() {
           </div>
         </div>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
-          <Card className="border-brand-200">
+          <section className={ROUTE_CARD}>
             <p className="text-xs font-semibold uppercase tracking-wide text-brand-700">Route 1</p>
-            <h2 className="mt-1 text-xl font-bold">Government scheme</h2>
-            <p className="mt-1 text-sm text-muted">For small and marginal farmers needing inputs, irrigation or small equipment.</p>
-            <LinkButton href="/farmer/applications/new?route=GOVERNMENT" className="mt-4" variant="secondary">
+            <h2 className="mt-1 text-xl font-bold text-brand-900">Government scheme</h2>
+            <p className="mt-1 text-sm text-brand-900/80">For small and marginal farmers needing inputs, irrigation or small equipment.</p>
+            <LinkButton href="/farmer/applications/new?route=GOVERNMENT" className="mt-4">
               {t.applyGov}
             </LinkButton>
-          </Card>
-          <Card className="border-sky-200">
-            <p className="text-xs font-semibold uppercase tracking-wide text-sky-800">Route 2</p>
-            <h2 className="mt-1 text-xl font-bold">Agricultural bank loan</h2>
-            <p className="mt-1 text-sm text-muted">Credit sized to your repayment capacity for crops, equipment, dairy or storage.</p>
-            <LinkButton href="/farmer/applications/new?route=BANK" className="mt-4" variant="secondary">
+          </section>
+          <section className={ROUTE_CARD}>
+            <p className="text-xs font-semibold uppercase tracking-wide text-brand-700">Route 2</p>
+            <h2 className="mt-1 text-xl font-bold text-brand-900">Agricultural bank loan</h2>
+            <p className="mt-1 text-sm text-brand-900/80">Credit sized to your repayment capacity for crops, equipment, dairy or storage.</p>
+            <LinkButton href="/farmer/applications/new?route=BANK" className="mt-4">
               {t.applyBank}
             </LinkButton>
-          </Card>
+          </section>
         </div>
       </section>
 

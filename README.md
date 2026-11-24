@@ -4,6 +4,8 @@ A prototype portal for applying for agricultural financing through two routes, a
 
 > **Demonstration only.** All data is synthetic. Approvals in this portal are not real loan sanctions and nothing is disbursed. The eligibility models were trained on synthetic data and are advisory: an officer always makes the decision. The portal does not quote real interest rates, thresholds or guaranteed benefits. Do not enter real Aadhaar numbers, bank credentials or customer records.
 
+**Live demo:** https://kisan-rin-saathi.vercel.app (Vercel, Sydney region, with Supabase PostgreSQL; uploaded documents are stored in the database with `STORAGE_DRIVER=database`). Sign in with the demo accounts below. Check a deployment with `node scripts/live-smoke.mjs <url>`, which creates one demo application.
+
 ## What it does
 
 | Role | Can do |

@@ -1,0 +1,117 @@
+import type { ApplicationStatus } from "./domain/constants";
+import { STATUS_LABELS } from "./domain/constants";
+
+export type Lang = "en" | "hi";
+export const LANG_COOKIE = "krs_lang";
+
+const en = {
+  appName: "Kisan Rin Saathi",
+  tagline: "Agricultural financing portal",
+  demoBanner: "Prototype for demonstration. Uses synthetic data; approvals here are not real loan sanctions.",
+  skip: "Skip to main content",
+  navHome: "Home",
+  navCompare: "Compare routes",
+  navEligibility: "Requirements",
+  navHelp: "Help",
+  navAssistant: "Voice assistant",
+  navDashboard: "Dashboard",
+  navApplications: "Applications",
+  navProfile: "Profile",
+  navNotifications: "Notifications",
+  navQueue: "Application queue",
+  login: "Sign in",
+  logout: "Sign out",
+  register: "Create account",
+  language: "हिन्दी",
+  newApplication: "New application",
+  applyGov: "Apply through government scheme",
+  applyBank: "Apply through bank",
+  viewRequirements: "View requirements",
+  actionRequired: "Action required — please review your application",
+  editApplication: "Edit application",
+  saveChanges: "Save changes",
+  saveDraft: "Save draft",
+  submit: "Submit application",
+  resubmit: "Resubmit application",
+  withdraw: "Withdraw",
+  exploreOther: "Explore other financing route",
+  sendReview: "Send review to farmer",
+  runAnalysis: "Run eligibility analysis",
+  markUnderReview: "Mark under review",
+  approve: "Approve application",
+  reject: "Reject application",
+  escalate: "Escalate for human review",
+  requestChanges: "Request additional information",
+  noApplications: "You have no applications yet.",
+  welcome: "Welcome",
+  notifications: "Notifications",
+  markAllRead: "Mark all as read",
+  advisory: "Eligibility results are advice for the officer. The officer makes the decision.",
+};
+
+const hi: typeof en = {
+  appName: "किसान ऋण साथी",
+  tagline: "कृषि वित्त पोर्टल",
+  demoBanner: "यह प्रदर्शन हेतु प्रोटोटाइप है। इसमें कृत्रिम डेटा है; यहाँ की स्वीकृति असली ऋण मंज़ूरी नहीं है।",
+  skip: "मुख्य सामग्री पर जाएँ",
+  navHome: "होम",
+  navCompare: "विकल्पों की तुलना",
+  navEligibility: "आवश्यकताएँ",
+  navHelp: "सहायता",
+  navAssistant: "आवाज़ सहायक",
+  navDashboard: "डैशबोर्ड",
+  navApplications: "आवेदन",
+  navProfile: "प्रोफ़ाइल",
+  navNotifications: "सूचनाएँ",
+  navQueue: "आवेदन कतार",
+  login: "साइन इन",
+  logout: "साइन आउट",
+  register: "खाता बनाएँ",
+  language: "English",
+  newApplication: "नया आवेदन",
+  applyGov: "सरकारी योजना से आवेदन करें",
+  applyBank: "बैंक से आवेदन करें",
+  viewRequirements: "आवश्यकताएँ देखें",
+  actionRequired: "कार्रवाई आवश्यक — कृपया अपना आवेदन देखें",
+  editApplication: "आवेदन बदलें",
+  saveChanges: "बदलाव सहेजें",
+  saveDraft: "ड्राफ़्ट सहेजें",
+  submit: "आवेदन जमा करें",
+  resubmit: "आवेदन दोबारा जमा करें",
+  withdraw: "वापस लें",
+  exploreOther: "दूसरा वित्त विकल्प देखें",
+  sendReview: "किसान को समीक्षा भेजें",
+  runAnalysis: "पात्रता विश्लेषण चलाएँ",
+  markUnderReview: "समीक्षा शुरू करें",
+  approve: "आवेदन स्वीकृत करें",
+  reject: "आवेदन अस्वीकार करें",
+  escalate: "वरिष्ठ समीक्षा के लिए भेजें",
+  requestChanges: "अतिरिक्त जानकारी माँगें",
+  noApplications: "आपका अभी कोई आवेदन नहीं है।",
+  welcome: "स्वागत है",
+  notifications: "सूचनाएँ",
+  markAllRead: "सभी को पढ़ा हुआ करें",
+  advisory: "पात्रता परिणाम अधिकारी के लिए सलाह है। अंतिम निर्णय अधिकारी लेते हैं।",
+};
+
+export type Dict = typeof en;
+export const DICTS: Record<Lang, Dict> = { en, hi };
+
+const STATUS_HI: Record<ApplicationStatus, string> = {
+  DRAFT: "ड्राफ़्ट",
+  SUBMITTED: "जमा किया गया",
+  UNDER_REVIEW: "समीक्षा में",
+  ASSESSMENT_PENDING: "मूल्यांकन चल रहा है",
+  ASSESSMENT_COMPLETED: "मूल्यांकन पूरा",
+  CHANGES_REQUESTED: "कार्रवाई आवश्यक",
+  RESUBMITTED: "दोबारा जमा",
+  HUMAN_REVIEW_REQUIRED: "वरिष्ठ समीक्षा में",
+  APPROVED: "स्वीकृत (डेमो)",
+  REJECTED: "अस्वीकृत",
+  WITHDRAWN: "वापस लिया गया",
+};
+
+export function statusLabel(status: string, lang: Lang = "en"): string {
+  const key = status as ApplicationStatus;
+  return lang === "hi" ? STATUS_HI[key] ?? status : STATUS_LABELS[key] ?? status;
+}

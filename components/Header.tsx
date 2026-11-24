@@ -27,7 +27,7 @@ export function Header({
         </Link>
         <div className="flex shrink-0 items-center gap-2">
           {onOpenProfile ? (
-            <Link href="/applications" className="hidden h-11 items-center px-1 text-base text-[#1C1916] sm:inline-flex sm:px-3">
+            <Link href="/farmer" className="hidden h-11 items-center px-1 text-base text-[#1C1916] sm:inline-flex sm:px-3">
               {copy.myApplications}
             </Link>
           ) : null}
@@ -40,7 +40,7 @@ export function Header({
               {copy.myInfo}
             </button>
           ) : (
-            <Link href="/" className="inline-flex h-11 items-center px-2 text-base text-[#1B6B45]">
+            <Link href="/assistant" className="inline-flex h-11 items-center px-2 text-base text-[#1B6B45]">
               {copy.backToChat}
             </Link>
           )}

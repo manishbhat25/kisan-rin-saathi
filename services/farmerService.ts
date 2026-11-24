@@ -1,13 +1,7 @@
 import type { FarmerProfile } from "@/lib/types";
 
-export async function saveProfile(profile: FarmerProfile): Promise<void> {
-  try {
-    await fetch("/api/farmer/profile", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(profile),
-    });
-  } catch {
-    // The copy on this device is already saved. The server hook can fail quietly.
-  }
-}
+/**
+ * The voice assistant keeps its working profile on this device only. Details reach the
+ * server when the farmer signs in and confirms them on the application form.
+ */
+export async function saveProfile(_profile: FarmerProfile): Promise<void> {}

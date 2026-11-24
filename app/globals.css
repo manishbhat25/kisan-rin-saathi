@@ -1,13 +1,29 @@
 @import "tailwindcss";
 
+@theme {
+  --color-brand-50: #eef7f1;
+  --color-brand-100: #d6ecdf;
+  --color-brand-200: #acd8bf;
+  --color-brand-500: #2e8b5a;
+  --color-brand-600: #22774b;
+  --color-brand-700: #1b6b45;
+  --color-brand-800: #155437;
+  --color-brand-900: #0f3d28;
+  --color-ink: #1c1916;
+  --color-muted: #5c574f;
+  --color-surface: #f6f4ef;
+  --color-line: #e4dfd5;
+  --font-sans: "Noto Sans", "Noto Sans Devanagari", "Nirmala UI", system-ui, sans-serif;
+}
+
 :root {
   color-scheme: light;
 }
 
 html,
 body {
-  background: #f6f4ef;
-  color: #1c1916;
+  background: var(--color-surface);
+  color: var(--color-ink);
 }
 
 body {
@@ -22,7 +38,8 @@ body {
 button,
 a,
 input,
-label {
+label,
+select {
   touch-action: manipulation;
 }
 
@@ -48,7 +65,8 @@ label {
 
 @media (prefers-reduced-motion: reduce) {
   .wave-bar,
-  .animate-spin {
+  .animate-spin,
+  .animate-pulse {
     animation: none;
   }
 }
@@ -63,4 +81,19 @@ label {
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
+}
+
+.skip-link {
+  position: absolute;
+  left: 1rem;
+  top: -4rem;
+  z-index: 100;
+  border-radius: 0.5rem;
+  background: #1b6b45;
+  color: white;
+  padding: 0.5rem 1rem;
+}
+
+.skip-link:focus {
+  top: 1rem;
 }

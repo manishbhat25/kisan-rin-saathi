@@ -10,6 +10,7 @@ import {
   updateDetailsSchema,
   versionSchema,
 } from "@/lib/domain/schemas";
+import { OPTIONAL_PREFILL, SHARED_PREFILL_FIELDS } from "@/lib/domain/prefill";
 import { normalizeState } from "@/lib/domain/states";
 import type { Actor } from "@/server/auth/actor";
 import { json, prisma, type Tx } from "@/server/db";
@@ -28,13 +29,6 @@ import { audit, notifyUsers, officerIdsForRoute } from "./events";
 import { applyTransition, bumpVersion } from "./transition";
 
 const EDITABLE = ["DRAFT", "CHANGES_REQUESTED"];
-
-/** Fields that may be copied into a new application, with the farmer's consent. */
-export const SHARED_PREFILL_FIELDS = ["fullName", "age", "stateCode", "district", "village", "landholdingAcres"] as const;
-export const OPTIONAL_PREFILL: Record<string, { from: string; to: string; label: string }[]> = {
-  "GOVERNMENT->BANK": [{ from: "annualAgriIncome", to: "annualIncome", label: "Yearly farm income → household income" }],
-  "BANK->GOVERNMENT": [],
-};
 
 function reference(route: FinancingRoute): string {
   const prefix = route === "GOVERNMENT" ? "GOV" : "BNK";

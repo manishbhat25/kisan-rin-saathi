@@ -272,17 +272,10 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   }
 
   function startApplication(loanId: LoanOption["id"]) {
-    setSession((prev) => {
-      if (prev.applications.some((item) => item.loanId === loanId)) return prev;
-      return {
-        ...prev,
-        applications: [
-          ...prev.applications,
-          { id: crypto.randomUUID(), loanId, createdAt: new Date().toISOString() },
-        ],
-        savedAt: new Date().toISOString(),
-      };
-    });
+    // KCC is offered under the government scheme route; the other products are bank loans.
+    const route = loanId === "kcc" ? "GOVERNMENT" : "BANK";
+    saveSession(sessionRef.current);
+    window.location.assign(`/farmer/applications/new?route=${route}&from=assistant`);
   }
 
   function reset() {

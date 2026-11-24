@@ -97,6 +97,21 @@ export async function createAssistanceCode(actor: Actor) {
   return { code, expiresAt: expiresAt.toISOString() };
 }
 
+export async function farmerAuthorizations(actor: Actor) {
+  if (actor.role !== "FARMER") throw forbidden();
+  const auths = await prisma.operatorAuthorization.findMany({
+    where: { farmerId: actor.id, revokedAt: null, expiresAt: { gt: new Date() } },
+    orderBy: { grantedAt: "desc" },
+    include: { operator: { select: { displayName: true } } },
+  });
+  return auths.map((auth) => ({
+    id: auth.id,
+    operatorName: auth.operator.displayName,
+    grantedAt: auth.grantedAt.toISOString(),
+    expiresAt: auth.expiresAt.toISOString(),
+  }));
+}
+
 export async function revokeAuthorizations(actor: Actor) {
   if (actor.role !== "FARMER") throw forbidden();
   const result = await prisma.operatorAuthorization.updateMany({

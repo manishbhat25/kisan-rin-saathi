@@ -1,0 +1,14 @@
+{
+  "currentPhase": "PHASE 3: Authentication and role access",
+  "lastCompletedTask": "Phase 2: Prisma schema, migrations, seed via domain services; ML pipelines and domain services implemented early",
+  "lastSuccessfulTest": "npm test (38 passed), npm run test:ml (18 passed)",
+  "lastStableCommit": null,
+  "currentBlockers": [
+    "Docker and PostgreSQL are not installed locally; Postgres/Docker path can be written but not executed",
+    "Prisma blocks `migrate reset` for AI agents; throwaway DBs are recreated by deleting the SQLite file (scripts/fresh-db.mjs)"
+  ],
+  "pendingTasks": ["p3-auth", "p4-farmer", "p7-officer", "p11-workflow UI", "p15-ui", "p17-tests", "p18-deploy", "p19-docs"],
+  "nextTask": "Auth pages, middleware and role-gated layouts",
+  "knownBugs": [],
+  "lastVerifiedRelease": null
+}

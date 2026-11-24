@@ -1,0 +1,14 @@
+{
+  "version": "gov-rules-v1",
+  "route": "GOVERNMENT",
+  "disclaimer": "Demonstration criteria only. Real scheme conditions are set by the implementing department and vary by scheme and state.",
+  "decisionPolicy": { "eligibleMinProbability": 0.6, "hardFailOverrideProbability": 0.5 },
+  "rules": [
+    { "id": "AGE_RANGE", "label": "Applicant age between 18 and 70", "field": "age", "op": "between", "value": [18, 70], "severity": "HARD", "failMessage": "The applicant's age is outside the 18–70 range used by this demo scheme.", "suggestion": "If another adult family member is the cultivator, they may be able to apply." },
+    { "id": "SMALL_FARMER", "label": "Cultivated land of 5 acres or less", "field": "landholdingAcres", "op": "lte", "value": 5, "severity": "HARD", "failMessage": "Cultivated land is above the 5-acre limit for this demo small-farmer scheme.", "suggestion": "Larger farms may be better served by the bank loan route." },
+    { "id": "INCOME_LIMIT", "label": "Farm income of ₹2,50,000 a year or less", "field": "annualAgriIncome", "op": "lte", "value": 250000, "severity": "HARD", "failMessage": "Yearly farm income is above the ₹2,50,000 limit for this demo scheme.", "suggestion": "Consider the bank loan route, which assesses repayment capacity instead of an income ceiling." },
+    { "id": "REQUEST_LIMIT", "label": "Support requested of ₹1,00,000 or less", "field": "requestedAmount", "op": "lte", "value": 100000, "severity": "HARD", "failMessage": "The support amount requested is above the ₹1,00,000 demo limit.", "suggestion": "Reduce the requested amount to ₹1,00,000 or less and resubmit." },
+    { "id": "BANK_ACCOUNT", "label": "Bank account in the applicant's name", "field": "hasBankAccount", "op": "eq", "value": true, "severity": "HARD", "failMessage": "A bank account in the applicant's name is needed to receive support.", "suggestion": "Open a basic savings account at any bank branch and update the application." },
+    { "id": "NO_PRIOR_DEFAULT", "label": "No unmet conditions on an earlier scheme", "field": "priorSchemeDefault", "op": "eq", "value": false, "severity": "HARD", "failMessage": "An earlier scheme's conditions were not met.", "suggestion": "Ask the agriculture office how to clear the earlier case before reapplying." }
+  ]
+}

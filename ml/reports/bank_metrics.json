@@ -1,0 +1,89 @@
+{
+ "version": "bank-dt-552465725c",
+ "selected": "DecisionTreeClassifier",
+ "selectionRule": "highest 5-fold cross-validated F1 on the training split",
+ "test": {
+  "accuracy": 0.9229,
+  "precision": 0.8607,
+  "recall": 0.8879,
+  "f1": 0.8741,
+  "rocAuc": 0.9194,
+  "confusionMatrix": {
+   "tn": 757,
+   "fp": 50,
+   "fn": 39,
+   "tp": 309
+  },
+  "cvF1": 0.8933,
+  "bestParams": {
+   "max_depth": 6,
+   "min_samples_leaf": 25
+  }
+ },
+ "comparison": {
+  "MajorityClassBaseline": {
+   "accuracy": 0.6987,
+   "precision": 0.0,
+   "recall": 0.0,
+   "f1": 0.0,
+   "rocAuc": 0.5,
+   "confusionMatrix": {
+    "tn": 807,
+    "fp": 0,
+    "fn": 348,
+    "tp": 0
+   }
+  },
+  "DecisionTreeClassifier": {
+   "accuracy": 0.9229,
+   "precision": 0.8607,
+   "recall": 0.8879,
+   "f1": 0.8741,
+   "rocAuc": 0.9194,
+   "confusionMatrix": {
+    "tn": 757,
+    "fp": 50,
+    "fn": 39,
+    "tp": 309
+   },
+   "cvF1": 0.8933,
+   "bestParams": {
+    "max_depth": 6,
+    "min_samples_leaf": 25
+   }
+  },
+  "RandomForestClassifier": {
+   "accuracy": 0.9117,
+   "precision": 0.8237,
+   "recall": 0.8994,
+   "f1": 0.8599,
+   "rocAuc": 0.9221,
+   "confusionMatrix": {
+    "tn": 740,
+    "fp": 67,
+    "fn": 35,
+    "tp": 313
+   },
+   "cvF1": 0.8722,
+   "bestParams": {
+    "max_depth": 8,
+    "min_samples_leaf": 10
+   }
+  }
+ },
+ "pipelineLog": {
+  "rawRows": 6120,
+  "afterExactDedupe": 6000,
+  "unrecognisedStates": 172,
+  "invalidRowsDropped": 56,
+  "missingValuesBeforeImputation": {
+   "existingMonthlyEmi": 177,
+   "landholdingAcres": 197
+  },
+  "afterFeatureDedupe": 5772,
+  "trainRows": 4617,
+  "testRows": 1155,
+  "positiveRateTrain": 0.3008
+ },
+ "warning": "Synthetic data. These metrics measure agreement with the demonstration labeling criteria only, not real-world creditworthiness."
+}

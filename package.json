@@ -1,23 +1,58 @@
 {
   "name": "kisan-rin-saathi",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start"
+    "dev": "node scripts/env.mjs next dev",
+    "build": "node scripts/env.mjs next build",
+    "start": "node scripts/env.mjs next start",
+    "setup": "npm run db:deploy && npm run db:seed",
+    "db:generate": "node scripts/env.mjs prisma generate",
+    "db:migrate": "node scripts/env.mjs prisma migrate dev",
+    "db:deploy": "node scripts/env.mjs prisma migrate deploy",
+    "db:seed": "node scripts/env.mjs tsx prisma/seed.ts",
+    "db:reset": "node scripts/env.mjs node scripts/fresh-db.mjs --allow-dev --seed",
+    "ml:train": "node scripts/python.mjs ml/train_all.py",
+    "test": "node scripts/env.mjs --test vitest run",
+    "test:ml": "node scripts/python.mjs -m pytest ml/tests -q",
+    "test:e2e": "playwright test",
+    "test:persistence": "node scripts/persistence-check.mjs",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint ."
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
+    "@prisma/client": "^6.19.3",
+    "@tanstack/react-query": "^5.108.4",
+    "bcryptjs": "^3.0.3",
     "next": "^15.5.4",
+    "prisma": "^6.19.3",
     "react": "^19.1.1",
-    "react-dom": "^19.1.1"
+    "react-dom": "^19.1.1",
+    "react-hook-form": "^7.92.0",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
+    "@eslint/eslintrc": "^3.3.7",
+    "@playwright/test": "^1.65.1",
     "@tailwindcss/postcss": "^4.1.13",
+    "@types/bcryptjs": "^2.4.6",
     "@types/node": "^22.18.6",
     "@types/react": "^19.1.13",
     "@types/react-dom": "^19.1.9",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "^15.5.29",
     "tailwindcss": "^4.1.13",
-    "typescript": "^5.9.2"
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.7"
+  },
+  "allowScripts": {
+    "prisma@6.19.3": true,
+    "@prisma/engines@6.19.3": true,
+    "@prisma/client@6.19.3": true,
+    "esbuild@0.28.2": true
   }
 }

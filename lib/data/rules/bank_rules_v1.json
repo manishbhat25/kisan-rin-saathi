@@ -1,0 +1,14 @@
+{
+  "version": "bank-rules-v1",
+  "route": "BANK",
+  "disclaimer": "Demonstration criteria only. Each bank sets its own lending policy, interest rates and security requirements.",
+  "decisionPolicy": { "eligibleMinProbability": 0.6, "hardFailOverrideProbability": 0.5 },
+  "rules": [
+    { "id": "AGE_RANGE", "label": "Applicant age between 21 and 65", "field": "age", "op": "between", "value": [21, 65], "severity": "HARD", "failMessage": "The applicant's age is outside the 21–65 range used in this demo policy.", "suggestion": "A younger family member could apply as co-applicant." },
+    { "id": "REPAYMENT_BURDEN", "label": "Total repayments at most 50% of monthly income", "field": "repaymentBurden", "op": "lte", "value": 0.5, "severity": "HARD", "failMessage": "Monthly repayments, including existing loans, would be more than half of monthly income.", "suggestion": "Reduce the amount, choose a longer repayment period, or close an existing loan first." },
+    { "id": "LOAN_TO_INCOME", "label": "Loan at most 3 times yearly income", "field": "loanToIncome", "op": "lte", "value": 3, "severity": "HARD", "failMessage": "The loan requested is more than 3 times yearly income.", "suggestion": "Request a smaller amount." },
+    { "id": "CREDIT_HISTORY", "label": "No missed or defaulted loan payments", "field": "creditHistory", "op": "notIn", "value": ["POOR"], "severity": "HARD", "failMessage": "Past loans show missed or defaulted payments.", "suggestion": "Regularise overdue loans and keep repayments on time before applying again." },
+    { "id": "SECURITY", "label": "Loan up to ₹1,60,000, or collateral covering the full amount", "op": "anyOf", "conditions": [ { "field": "requestedAmount", "op": "lte", "value": 160000 }, { "field": "collateralCoverage", "op": "gte", "value": 1 } ], "severity": "HARD", "failMessage": "Loans above ₹1,60,000 need security worth at least the loan amount in this demo policy.", "suggestion": "Offer collateral worth at least the loan amount, or reduce the loan to ₹1,60,000." },
+    { "id": "EXPERIENCE", "label": "At least 2 years of farming experience", "field": "yearsFarming", "op": "gte", "value": 2, "severity": "SOFT", "failMessage": "Less than 2 years of farming experience.", "suggestion": "A guarantor or a smaller first loan may help." }
+  ]
+}

@@ -419,3 +419,12 @@ model AuditLog {
   @@index([actorId])
   @@map("audit_logs")
 }
+
+/// File contents when STORAGE_DRIVER=database (hosted deployments without a writable disk).
+model DocumentBlob {
+  storedName String   @id
+  content    Bytes
+  createdAt  DateTime @default(now())
+
+  @@map("document_blobs")
+}

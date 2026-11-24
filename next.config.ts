@@ -30,6 +30,8 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   distDir: process.env.NEXT_DIST_DIR || ".next",
   output: process.env.NEXT_OUTPUT === "standalone" ? "standalone" : undefined,
+  // Model JSON is read from disk at runtime, which file tracing cannot see.
+  outputFileTracingIncludes: { "/**": ["./ml/artifacts/*.json"] },
   async headers() {
     return [
       { source: "/:path*", headers: securityHeaders },

@@ -1,6 +1,7 @@
 import { createHash, randomUUID } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { prisma } from "./db";
 import { badRequest } from "./errors";
 
 export const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
@@ -24,14 +25,28 @@ export function detectFile(buffer: Buffer): { mime: string; ext: string } {
   return { mime: match.mime, ext: match.ext };
 }
 
+/** "database" keeps file bytes in the document_blobs table, for hosts without a persistent writable disk. */
+function storesInDatabase(): boolean {
+  return process.env.STORAGE_DRIVER === "database";
+}
+
 export async function saveFile(buffer: Buffer, ext: string): Promise<{ storedName: string; sha256: string }> {
   const storedName = `${randomUUID()}${ext}`;
-  await mkdir(uploadDir(), { recursive: true });
-  await writeFile(path.join(uploadDir(), storedName), buffer, { flag: "wx" });
+  if (storesInDatabase()) {
+    await prisma.documentBlob.create({ data: { storedName, content: new Uint8Array(buffer) } });
+  } else {
+    await mkdir(uploadDir(), { recursive: true });
+    await writeFile(path.join(uploadDir(), storedName), buffer, { flag: "wx" });
+  }
   return { storedName, sha256: createHash("sha256").update(buffer).digest("hex") };
 }
 
 export async function readStoredFile(storedName: string): Promise<Buffer> {
   if (!/^[\w-]+\.(pdf|png|jpg)$/.test(storedName)) throw badRequest("Invalid file reference.");
+  if (storesInDatabase()) {
+    const blob = await prisma.documentBlob.findUnique({ where: { storedName } });
+    if (!blob) throw new Error("Stored file not found.");
+    return Buffer.from(blob.content);
+  }
   return readFile(path.join(uploadDir(), storedName));
 }
